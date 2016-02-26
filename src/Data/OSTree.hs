@@ -11,7 +11,7 @@ import GHC.Generics (Generic)
 
 type Size = Int
 data OSTree a = Tip
-              | Bin Size a (OSTree a) (OSTree a)
+              | Bin {-# UNPACK #-} !Size !a !(OSTree a) !(OSTree a)
               deriving (Eq,Show,Generic)
 
 empty :: OSTree a
