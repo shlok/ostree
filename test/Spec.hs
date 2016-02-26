@@ -6,7 +6,7 @@ import Test.Tasty.QuickCheck
 import Data.List
 import Data.Maybe
 import qualified Data.OSTree as M
-import Data.OSTree (OSTree)
+import Data.OSTree (OSTree(..))
 
 main = defaultMain tests
 
@@ -32,20 +32,47 @@ prepareDelete inserted deleted = let
   m' = foldr M.insert M.empty toInsert
   in foldr M.delete m' deleted
 
+(!!?) :: [a] -> Int -> Maybe a
+xs !!? k
+  | 0 <= k && k < length xs = Just $ xs !! k
+  | otherwise               = Nothing
+
 tests :: TestTree
 tests = testGroup "Tests"
         [ testGroup "Insertion"
-          [ testProperty "Insert inserts all elements" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
+          [ testProperty "insert inserts all elements" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
                                                                                   in all (isJust . flip M.lookup m) toInsert &&
                                                                                      all (isNothing . flip M.lookup m) notInserted
-          , testProperty "Insert leave tree balanced" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
+          , testProperty "insert leave tree balanced" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
                                                                                  in M.balanced m
-          , testProperty "Insert leave tree correctly sized" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
+          , testProperty "insert leave tree correctly sized" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
                                                                                         in M.count m === M.size m
-          , testProperty "Delete deletes" $ \inserted deleted -> let m = prepareDelete inserted deleted
+          ]
+        , testGroup "Deletion"
+          [ testProperty "delete deletes" $ \inserted deleted -> let m = prepareDelete inserted deleted
                                                                  in all (isNothing . flip M.lookup m) deleted
-          , testProperty "Delete leave tree correctly sized" $ \inserted deleted -> let m = prepareDelete inserted deleted
-                                                                                    in M.count m === M.size m
+          , testProperty "delete leave tree correctly sized" $ \inserted deleted -> let m = prepareDelete inserted deleted
+                                                                                    in M.count m === M.size m 
+          ]
+        , testGroup "Conversion to List"
+          [ testProperty "toList correctly converts" $ \inserted -> let m = prepareDelete inserted []
+                                                                    in M.toList m === sort (nub inserted)
+          , testCase "toList (Bin 1 Tip Tip)" $ M.toList (Bin 1 1 Tip Tip) @?= [1]
+          ]
+        , testGroup "Conversion from List"
+          [ testProperty "toList . fromList == id" $ \list -> M.toList (M.fromList list) === sort (nub (list :: [Int]))
+          ]
+        , testGroup "Selection"
+          [ testProperty "select selects correct item" $ \list k -> M.select (M.fromList (list :: [Int])) (k::Int) === sort (nub list) !!? (k-1)
+          ]
+        , testGroup "Ranking"
+          [ testProperty "rank ranks correctly when item is presented in tree" $ \list k -> (0<=k && k<length list) ==> let
+               sorted = sort $ nub list :: [Int]
+               item = sorted !! k
+               in M.rank item (M.fromList list) === Just k
+          , testProperty "rank ranks correctly when item is not presented in tree" $ \list item -> item`notElem`list ==> let
+               sorted = sort $ nub list :: [Int]
+               in M.rank item (M.fromList list) === Nothing
           ]
         ]
 
