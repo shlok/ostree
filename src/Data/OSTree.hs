@@ -1,15 +1,18 @@
+{-# LANGUAGE DeriveGeneric #-}
+
 module Data.OSTree
        where
 
 import Prelude hiding (lookup)
 import Data.List (foldl')
+import GHC.Generics (Generic)
 
 -- https://yoichihirai.com/bst.pdf
 
 type Size = Int
 data OSTree a = Tip
               | Bin Size a (OSTree a) (OSTree a)
-              deriving (Eq,Show)
+              deriving (Eq,Show,Generic)
 
 empty :: OSTree a
 empty = Tip
@@ -161,8 +164,12 @@ fromList :: (Ord a) => [a] -> OSTree a
 fromList = foldl' (flip insert) empty
 
 select :: OSTree a -> Int -> Maybe a
-select = undefined
+select Tip i = Nothing
+select (Bin _ k l r) i = let
+  n = size l + 1
+  in case compare i n of
+    EQ -> Just k
+    LT -> select l i
+    GT -> select r $ i-n
 
-rank :: a -> OSTree a -> Maybe Int
-rank = undefined
 
