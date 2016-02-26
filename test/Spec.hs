@@ -65,14 +65,14 @@ tests = testGroup "Tests"
         , testGroup "Selection"
           [ testProperty "select selects correct item" $ \list k -> M.select (M.fromList (list :: [Int])) (k::Int) === sort (nub list) !!? (k-1)
           ]
-        , testGroup "Ranking"
-          [ testProperty "rank ranks correctly when item is presented in tree" $ \list k -> (0<=k && k<length list) ==> let
-               sorted = sort $ nub list :: [Int]
-               item = sorted !! k
-               in M.rank item (M.fromList list) === Just k
-          , testProperty "rank ranks correctly when item is not presented in tree" $ \list item -> item`notElem`list ==> let
-               sorted = sort $ nub list :: [Int]
-               in M.rank item (M.fromList list) === Nothing
-          ]
+        -- , testGroup "Ranking"
+        --   [ testProperty "rank ranks correctly when item is presented in tree" $ \list k -> (0<=k && k<length list) ==> let
+        --        sorted = sort $ nub list :: [Int]
+        --        item = sorted !! k
+        --        in M.rank item (M.fromList list) === Just k
+        --   , testProperty "rank ranks correctly when item is not presented in tree" $ \list item -> item`notElem`list ==> let
+        --        sorted = sort $ nub list :: [Int]
+        --        in M.rank item (M.fromList list) === Nothing
+        --   ]
         ]
 
