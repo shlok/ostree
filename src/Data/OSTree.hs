@@ -2,6 +2,7 @@ module Data.OSTree
        where
 
 import Prelude hiding (lookup)
+import Data.List (foldl')
 
 -- https://yoichihirai.com/bst.pdf
 
@@ -149,7 +150,17 @@ balance k l r
   | size l > size r                  = rotateR k l r
   | otherwise                        = rotateL k l r
 
-select :: OSTree a -> Int -> a
+toList :: OSTree a -> [a]
+toList k = toListL k []
+
+toListL :: OSTree a -> [a] -> [a]
+toListL Tip = id
+toListL (Bin _ k l r) = toListL l . (k:) . toListL r
+
+fromList :: (Ord a) => [a] -> OSTree a
+fromList = foldl' (flip insert) empty
+
+select :: OSTree a -> Int -> Maybe a
 select = undefined
 
 rank :: a -> OSTree a -> Maybe Int
