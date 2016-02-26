@@ -6,6 +6,7 @@ import Control.DeepSeq (NFData)
 import Control.Monad
 import System.Random
 
+import qualified Data.Set as Set
 import qualified Data.OSTree as M
 import Data.OSTree (OSTree)
 
@@ -53,6 +54,7 @@ main = defaultMain
        , bgroup "Deletions"  $ onAllEnv envs' allKs deletions
        , bgroup "Lookups"    $ onAllEnv envs' allKs lookups
        , bgroup "Selections" $ onAllEnv envs' allKs selections
+       , bgroup "Data.Map.Strict.insert" $ onAllEnv envs [last allKs] strictMapInsert
        ]
 
 
@@ -67,4 +69,7 @@ lookups name ~(tree,item) = bench name $ nf (M.lookup item) tree
 
 selections :: String -> (OSTree Int, Int) -> Benchmark
 selections name ~(tree,item) = bench name $ nf (flip M.select item) tree
+
+strictMapInsert :: String -> Env -> Benchmark
+strictMapInsert name ~environ = bench name $ nf Set.fromList environ
 
