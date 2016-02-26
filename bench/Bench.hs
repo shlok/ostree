@@ -1,14 +1,70 @@
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
 import Criterion.Main
+import Control.Arrow
+import Control.DeepSeq (NFData)
+import Control.Monad
+import System.Random
 
-import Data.OSTree
+import qualified Data.OSTree as M
+import Data.OSTree (OSTree)
 
-setupEnv = do
-  return ()
+instance NFData a => NFData (OSTree a)
 
-main = defaultMain [
-  env setupEnv $ \ ~() ->
-   bgroup "Group 1"
-   [
-   ]
-  ]
+type Env = [Int]
+
+sortedItems :: Int -> IO Env
+sortedItems n = do
+  return [1000..1000+n]
+
+revSortedItems :: Int -> IO Env
+revSortedItems = (reverse <$>) . sortedItems
+
+randomItems :: Int -> IO Env
+randomItems n = replicateM n randomIO
+
+tree :: IO Env -> IO (OSTree Int, Int)
+tree items = do
+  tree <- M.fromList <$> items
+  item <- (`mod` M.size tree) <$> randomIO
+  return (tree,item)
+
+allKs = [10000,20000,50000,100000,200000,1000000]
+
+envs :: [(String, Int -> IO Env)]
+envs = [ ("Sorted", sortedItems), ("Reverse", revSortedItems), ("Random", randomItems) ]
+
+envs' :: [(String, Int -> IO (OSTree Int, Int))]
+envs' = map (second (tree.)) envs
+
+onAllEnv :: (NFData a) =>
+            [(String, Int -> IO a)] ->
+            [Int] ->
+            (String -> a -> Benchmark) ->
+            [Benchmark]
+onAllEnv envs ks test = [ bgroup (show k)
+                          [ env (getEnv k) $ \ ~environ ->
+                             test name environ
+                          | (name, getEnv) <- envs]
+                        | k <- ks ]
+
+main = defaultMain
+       [ bgroup "Insertions" $ onAllEnv envs  allKs insertions
+       , bgroup "Deletions"  $ onAllEnv envs' allKs deletions
+       , bgroup "Lookups"    $ onAllEnv envs' allKs lookups
+       , bgroup "Selections" $ onAllEnv envs' allKs selections
+       ]
+
+
+insertions :: String -> Env -> Benchmark
+insertions name ~environ = bench name $ nf M.fromList environ
+
+deletions :: String -> (OSTree Int, Int) -> Benchmark
+deletions name ~(tree,item) = bench name $ nf (M.delete item) tree
+
+lookups :: String -> (OSTree Int, Int) -> Benchmark
+lookups name ~(tree,item) = bench name $ nf (M.lookup item) tree
+
+selections :: String -> (OSTree Int, Int) -> Benchmark
+selections name ~(tree,item) = bench name $ nf (flip M.select item) tree
+
