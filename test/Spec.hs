@@ -6,7 +6,8 @@ import Test.Tasty.QuickCheck
 import Data.List
 import Data.Maybe
 import qualified Data.OSTree as M
-import Data.OSTree (OSTree(..))
+import Data.OSTree.Types
+import qualified Data.OSTree.Internal as MI
 
 main = defaultMain tests
 
@@ -44,27 +45,28 @@ tests = testGroup "Tests"
                                                                                   in all (isJust . flip M.lookup m) toInsert &&
                                                                                      all (isNothing . flip M.lookup m) notInserted
           , testProperty "insert leave tree balanced" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
-                                                                                 in M.balanced m
+                                                                                 in MI.balanced m
           , testProperty "insert leave tree correctly sized" $ \inserted notInserted -> let (m, toInsert) = prepareInsert inserted notInserted
-                                                                                        in M.count m === M.size m
+                                                                                        in MI.count m === M.size m
           ]
         , testGroup "Deletion"
           [ testProperty "delete deletes" $ \inserted deleted -> let m = prepareDelete inserted deleted
                                                                  in all (isNothing . flip M.lookup m) deleted
           , testProperty "delete leave tree correctly sized" $ \inserted deleted -> let m = prepareDelete inserted deleted
-                                                                                    in M.count m === M.size m 
+                                                                                    in MI.count m === M.size m 
           ]
         , testGroup "Conversion to List"
-          [ testProperty "toList correctly converts" $ \inserted -> let m = prepareDelete inserted []
-                                                                    in M.toList m === sort (nub inserted)
+          [ testProperty "toList correctly converts" $ \inserted -> let m = foldr M.insert M.empty (inserted :: [Int])
+                                                                    in M.toList m === sort inserted
           , testCase "toList (Bin 1 Tip Tip)" $ M.toList (Bin 1 1 Tip Tip) @?= [1]
           ]
         , testGroup "Conversion from List"
-          [ testProperty "toList . fromList == id" $ \list -> M.toList (M.fromList list) === sort (nub (list :: [Int]))
+          [ testProperty "toList . fromList == id" $ \list -> M.toList (M.fromList list) === sort (list :: [Int])
+          , testCase "fromList [8,8]" $ M.fromList [8,8] @?= Bin 2 8 Tip (Bin 1 8 Tip Tip)
           ]
         , testGroup "Selection"
-          [ testProperty "select selects correct item" $ \list k -> M.select (M.fromList (list :: [Int])) (k::Int) === sort (nub list) !!? (k-1)
-          ]
+          [ testProperty "select selects correct item" $ \list k -> M.select (M.fromList (list :: [Int])) (k::Int) === sort list !!? (k-1)
+          ] 
         -- , testGroup "Ranking"
         --   [ testProperty "rank ranks correctly when item is presented in tree" $ \list k -> (0<=k && k<length list) ==> let
         --        sorted = sort $ nub list :: [Int]
