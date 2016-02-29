@@ -10,7 +10,7 @@ license-file:        LICENSE
 author:              Mansur Ziiatdinov
 maintainer:          mz@lambdasoft.ru
 copyright:           Lambda Kazan, 2016
--- category:            
+category:            Data
 build-type:          Simple
 -- extra-source-files:  
 cabal-version:       >=1.10
