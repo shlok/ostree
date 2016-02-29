@@ -5,11 +5,11 @@ name:                order-statistic-tree
 version:             0.1.0.0
 synopsis:            Order statistic trees based on weight-balanced trees
 -- description:         
--- license:             
+license:             BSD-3
 license-file:        LICENSE
 author:              Mansur Ziiatdinov
 maintainer:          mz@lambdasoft.ru
--- copyright:           
+copyright:           Lambda Kazan
 -- category:            
 build-type:          Simple
 -- extra-source-files:  
