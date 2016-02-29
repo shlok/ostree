@@ -9,11 +9,11 @@ Portability : POSIX
 
 = Order Statistic Tree
 
-This implementation uses weight-balanced trees as desribed in
+This implementation uses weight-balanced trees which are desribed in
 
 - Hirai, Yoichi, and Kazuhiko Yamamoto. "Balancing weight-balanced trees." Journal of Functional Programming 21.03 (2011): 287-307.
 
-Also some of its code is based on code from containers package.
+Also some of its code is based on containers package.
 
 Implementation of order statistic tree is described in
 
