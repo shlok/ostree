@@ -2,7 +2,7 @@
 --  documentation, see http://haskell.org/cabal/users-guide/
 
 name:                order-statistic-tree
-version:             0.1.0.0
+version:             0.1.1.0
 synopsis:            Order statistic trees based on weight-balanced trees
 description:         This repository contains an implementation of order statistic tree in Haskell programming language.
                      I could not find an order statistic tree at Hackage, so I have to develop one.
@@ -38,7 +38,7 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Data.OSTree
-  -- other-modules:       
+  other-modules:       Data.OSTree.Types, Data.OSTree.Internal
   -- other-extensions:    
   build-depends:       base >=4.8 && <4.9
   hs-source-dirs:      src

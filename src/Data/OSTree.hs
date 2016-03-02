@@ -47,6 +47,8 @@ module Data.OSTree
        , insert
        , lookup
        , delete
+       , deleteFindMin
+       , deleteFindMax
          -- * Conversions
        , toList
        , fromList
@@ -63,15 +65,15 @@ import Data.OSTree.Internal
 
 -- https://yoichihirai.com/bst.pdf
 
--- | Returns an empty tree
+-- | /O(1)/. Returns an empty tree
 empty :: OSTree a
 empty = Tip
 
--- | Returns a tree with single element
+-- | /O(1)/. Returns a tree with single element
 singleton :: a -> OSTree a
 singleton k = Bin 1 k Tip Tip
 
--- | Insert the element into the tree
+-- | O(log n)/. Insert the element into the tree
 insert :: (Ord a) => a -> OSTree a -> OSTree a
 insert kx Tip = singleton kx
 insert kx t@(Bin sz ky l r) = case compare kx ky of
@@ -79,7 +81,7 @@ insert kx t@(Bin sz ky l r) = case compare kx ky of
   GT -> balanceL ky l (insert kx r)
   EQ -> balanceR ky l (insert kx r)
 
--- | Lookup the element in the tree
+-- | O(log n)/. Lookup the element in the tree
 lookup :: (Ord a) => a -> OSTree a -> Maybe a
 lookup kx Tip = Nothing
 lookup kx (Bin _ ky l r) = case compare kx ky of
@@ -87,7 +89,7 @@ lookup kx (Bin _ ky l r) = case compare kx ky of
   GT -> lookup kx r
   EQ -> Just ky
 
--- | Delete first occurence of the element from the tree
+-- | /O(log n)/. Delete first occurence of the element from the tree
 delete :: (Ord a) => a -> OSTree a -> OSTree a
 delete k t
   = case t of
@@ -98,7 +100,7 @@ delete k t
                GT -> balanceR kx l (delete k r)
                EQ -> glue l r
 
--- | Return list of elements of the tree
+-- | /O(n)/. Return list of elements of the tree
 toList :: OSTree a -> [a]
 toList k = toListL k []
 
@@ -106,11 +108,11 @@ toListL :: OSTree a -> [a] -> [a]
 toListL Tip = id
 toListL (Bin _ k l r) = toListL l . (k:) . toListL r
 
--- | Convert list of elements to the tree
+-- | /O(n log n)/. Convert list of elements to the tree
 fromList :: (Ord a) => [a] -> OSTree a
 fromList = foldl' (flip insert) empty
 
--- | Returns i-th least element of the tree
+-- | /O(log n)/. Returns i-th least element of the tree
 select :: OSTree a              -- ^ tree
        -> Int                   -- ^ index 'i', starting from 1
        -> Maybe a               -- ^ if there are at least 'i' elements, returns i-th least element
