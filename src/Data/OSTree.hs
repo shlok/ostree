@@ -73,7 +73,7 @@ empty = Tip
 singleton :: a -> OSTree a
 singleton k = Bin 1 k Tip Tip
 
--- | O(log n)/. Insert the element into the tree
+-- | /O(log n)/. Insert the element into the tree
 insert :: (Ord a) => a -> OSTree a -> OSTree a
 insert kx Tip = singleton kx
 insert kx t@(Bin sz ky l r) = case compare kx ky of
@@ -81,7 +81,7 @@ insert kx t@(Bin sz ky l r) = case compare kx ky of
   GT -> balanceL ky l (insert kx r)
   EQ -> balanceR ky l (insert kx r)
 
--- | O(log n)/. Lookup the element in the tree
+-- | /O(log n)/. Lookup the element in the tree
 lookup :: (Ord a) => a -> OSTree a -> Maybe a
 lookup kx Tip = Nothing
 lookup kx (Bin _ ky l r) = case compare kx ky of
