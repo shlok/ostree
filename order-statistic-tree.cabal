@@ -21,10 +21,10 @@ description:         This repository contains an implementation of order statist
                      .
                      I tried to make this tree as fast as possible. The results on my i7-4790 with 16Gb RAM are following:
                      .
-                     - OSTree was created from 1.000.000 random numbers in 2.087 ± 0.021 s (e.g. for Data.Map.Strict - 1.977 ± 0.016 s);
-                     - deletion from OSTree with 1.000.000 random numbers was made in 13.94 ± 0.93 ms;
-                     - lookup from OSTree with 1.000.000 random numbers was made in 208.2 ± 3.48 ns;
-                     - selection from OSTree with 1.000.000 random numbers was made in 92.72 ± 1.91 ns;
+                     - OSTree was created from 1.000.000 random numbers in 1.987 ± 0.015 s (e.g. for Data.Map.Strict - 2.081 ± 0.008 s);
+                     - deletion from OSTree with 1.000.000 random numbers was made in 13.88 ± 0.14 ms;
+                     - lookup from OSTree with 1.000.000 random numbers was made in 164.8 ± 1.06 ns;
+                     - selection from OSTree with 1.000.000 random numbers was made in 56.54 ± 0.99 ns;
                      - full testing protocol can be found in result-bench.txt.
 license:             BSD3
 license-file:        LICENSE
