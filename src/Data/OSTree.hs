@@ -56,6 +56,10 @@ module Data.OSTree
 
     -- * Statistics
     select,
+
+    -- * Rank
+    rank,
+    rank',
   )
 where
 
@@ -128,3 +132,58 @@ select (Bin _ k l r) i =
         EQ -> Just k
         LT -> select l i
         GT -> select r $ i - n
+
+-- | /O(log n)/. Returns the tree's rank if the given element is in the tree; returns 'Nothing'
+-- otherwise.
+rank ::
+  (Ord a) =>
+  OSTree a ->
+  -- | A given element.
+  a ->
+  Maybe Int
+rank t a =
+  go 0 False t
+  where
+    -- + sum': Number of elements already (in earlier iterations) identified to be less than the
+    --   given element a.
+    -- + found': Whether the given element a was already found (in earlier iterations).
+    go sum' found' t =
+      case t of
+        Tip ->
+          if found'
+            then Just sum'
+            else Nothing
+        Bin _ k l r ->
+          case compare a k of
+            EQ ->
+              -- The given element a is equal to k (and potentially equal to other elements in l).
+              go sum' True l
+            LT ->
+              -- The given element a is less than k (and all elements in r).
+              go sum' found' l
+            GT ->
+              -- The given element a is greater than k (and all elements in l).
+              go (sum' + size l + 1) found' r
+
+-- | /O(log n)/. An alternative implementation of 'rank'; possibly simpler to understand for
+-- programmers. Presumably slower (more thunking), but this has not been properly tested yet.
+rank' ::
+  (Ord a) =>
+  OSTree a ->
+  -- | A given element.
+  a ->
+  Maybe Int
+rank' Tip _ = Nothing
+rank' (Bin _ k l r) a =
+  case compare a k of
+    EQ ->
+      -- The given element a is equal to k (and potentially equal to other elements in l).
+      case rank l a of
+        Nothing -> Just $ size l
+        Just x -> Just x
+    LT ->
+      -- The given element a is less than k (and all elements in r).
+      rank l a
+    GT ->
+      -- The given element a is greater than k (and all elements in l).
+      (size l + 1 +) <$> rank r a

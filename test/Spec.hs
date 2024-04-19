@@ -40,51 +40,63 @@ tests :: TestTree
 tests =
   testGroup
     "Tests"
-    [ testGroup
-        "Insertion"
-        [ testProperty "insert inserts all elements" $ \inserted notInserted ->
-            let (m, toInsert) = prepareInsert inserted notInserted
-             in all (isJust . flip M.lookup m) toInsert
-                  && all (isNothing . flip M.lookup m) notInserted,
-          testProperty "insert leave tree balanced" $ \inserted notInserted ->
-            let (m, toInsert) = prepareInsert inserted notInserted
-             in MI.balanced m,
-          testProperty "insert leave tree correctly sized" $ \inserted notInserted ->
-            let (m, toInsert) = prepareInsert inserted notInserted
-             in MI.count m === M.size m
-        ],
-      testGroup
-        "Deletion"
-        [ testProperty "delete deletes" $ \inserted deleted ->
-            let m = prepareDelete inserted deleted
-             in all (isNothing . flip M.lookup m) deleted,
-          testProperty "delete leave tree correctly sized" $ \inserted deleted ->
-            let m = prepareDelete inserted deleted
-             in MI.count m === M.size m
-        ],
-      testGroup
-        "Conversion to List"
-        [ testProperty "toList correctly converts" $ \inserted ->
-            let m = foldr M.insert M.empty (inserted :: [Int])
-             in M.toList m === sort inserted,
-          testCase "toList (Bin 1 Tip Tip)" $ M.toList (Bin 1 1 Tip Tip) @?= [1]
-        ],
-      testGroup
-        "Conversion from List"
-        [ testProperty "toList . fromList == id" $ \list -> M.toList (M.fromList list) === sort (list :: [Int]),
-          testCase "fromList [8,8]" $ M.fromList [8, 8] @?= Bin 2 8 Tip (Bin 1 8 Tip Tip)
-        ],
-      testGroup
-        "Selection"
-        [ testProperty "select selects correct item" $ \list k -> M.select (M.fromList (list :: [Int])) (k :: Int) === sort list !!? (k - 1)
-        ]
-        -- , testGroup "Ranking"
-        --   [ testProperty "rank ranks correctly when item is presented in tree" $ \list k -> (0<=k && k<length list) ==> let
-        --        sorted = sort $ nub list :: [Int]
-        --        item = sorted !! k
-        --        in M.rank item (M.fromList list) === Just k
-        --   , testProperty "rank ranks correctly when item is not presented in tree" $ \list item -> item`notElem`list ==> let
-        --        sorted = sort $ nub list :: [Int]
-        --        in M.rank item (M.fromList list) === Nothing
-        --   ]
-    ]
+    $ [ testGroup
+          "Insertion"
+          [ testProperty "insert inserts all elements" $ \inserted notInserted ->
+              let (m, toInsert) = prepareInsert inserted notInserted
+               in all (isJust . flip M.lookup m) toInsert
+                    && all (isNothing . flip M.lookup m) notInserted,
+            testProperty "insert leave tree balanced" $ \inserted notInserted ->
+              let (m, toInsert) = prepareInsert inserted notInserted
+               in MI.balanced m,
+            testProperty "insert leave tree correctly sized" $ \inserted notInserted ->
+              let (m, toInsert) = prepareInsert inserted notInserted
+               in MI.count m === M.size m
+          ],
+        testGroup
+          "Deletion"
+          [ testProperty "delete deletes" $ \inserted deleted ->
+              let m = prepareDelete inserted deleted
+               in all (isNothing . flip M.lookup m) deleted,
+            testProperty "delete leave tree correctly sized" $ \inserted deleted ->
+              let m = prepareDelete inserted deleted
+               in MI.count m === M.size m
+          ],
+        testGroup
+          "Conversion to List"
+          [ testProperty "toList correctly converts" $ \inserted ->
+              let m = foldr M.insert M.empty (inserted :: [Int])
+               in M.toList m === sort inserted,
+            testCase "toList (Bin 1 Tip Tip)" $ M.toList (Bin 1 1 Tip Tip) @?= [1]
+          ],
+        testGroup
+          "Conversion from List"
+          [ testProperty "toList . fromList == id" $ \list -> M.toList (M.fromList list) === sort (list :: [Int]),
+            testCase "fromList [8,8]" $ M.fromList [8, 8] @?= Bin 2 8 Tip (Bin 1 8 Tip Tip)
+          ],
+        testGroup
+          "Selection"
+          [ testProperty "select selects correct item" $ \list k -> M.select (M.fromList (list :: [Int])) (k :: Int) === sort list !!? (k - 1)
+          ]
+      ]
+      ++ ( let testRanking rankf rankfn =
+                 testGroup
+                   "Ranking"
+                   [ testProperty
+                       (rankfn ++ " ranks correctly when item is presented in tree")
+                       $ \list k ->
+                         (0 <= k && k < length list)
+                           ==> let item = (list :: [Int]) !! k
+                                   sorted = sort list
+                                   idx = fromJust $ elemIndex item sorted
+                                in rankf (M.fromList list) item === Just idx,
+                     testProperty
+                       (rankfn ++ " rank ranks correctly when item is not presented in tree")
+                       $ \list item ->
+                         item
+                           `notElem` list
+                           ==> rankf (M.fromList (list :: [Int])) item
+                           === Nothing
+                   ]
+            in [testRanking M.rank "rank", testRanking M.rank' "rank'"]
+         )
