@@ -1,3 +1,6 @@
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE LambdaCase #-}
+
 -- |
 -- Module      : Data.OSTree
 -- Description : Order Statistic Tree
@@ -147,8 +150,7 @@ rank t a =
     -- + sum': Number of elements already (in earlier iterations) identified to be less than the
     --   given element a.
     -- + found': Whether the given element a was already found (in earlier iterations).
-    go sum' found' t =
-      case t of
+    go !sum' !found' = \case
         Tip ->
           if found'
             then Just sum'
