@@ -136,8 +136,7 @@ select (Bin _ k l r) i =
         LT -> select l i
         GT -> select r $ i - n
 
--- | /O(log n)/. Returns the tree's rank if the given element is in the tree; returns 'Nothing'
--- otherwise.
+-- | /O(log n)/. If the given element is in the tree, returns its rank; returns 'Nothing' otherwise.
 rank ::
   (Ord a) =>
   OSTree a ->
@@ -151,24 +150,24 @@ rank t a =
     --   given element a.
     -- + found': Whether the given element a was already found (in earlier iterations).
     go !sum' !found' = \case
-        Tip ->
-          if found'
-            then Just sum'
-            else Nothing
-        Bin _ k l r ->
-          case compare a k of
-            EQ ->
-              -- The given element a is equal to k (and potentially equal to other elements in l).
-              go sum' True l
-            LT ->
-              -- The given element a is less than k (and all elements in r).
-              go sum' found' l
-            GT ->
-              -- The given element a is greater than k (and all elements in l).
-              go (sum' + size l + 1) found' r
+      Tip ->
+        if found'
+          then Just sum'
+          else Nothing
+      Bin _ k l r ->
+        case compare a k of
+          EQ ->
+            -- The given element a is equal to k (and potentially equal to other elements in l).
+            go sum' True l
+          LT ->
+            -- The given element a is less than k (and all elements in r).
+            go sum' found' l
+          GT ->
+            -- The given element a is greater than k (and all elements in l).
+            go (sum' + size l + 1) found' r
 
--- | /O(log n)/. An alternative implementation of 'rank'; possibly simpler to understand for
--- programmers. Presumably slower (more thunking), but this has not been properly tested yet.
+-- | /O(log n)/. An alternative implementation of 'rank'. Less performant (more thunking), but
+-- possibly simpler to understand for programmers.
 rank' ::
   (Ord a) =>
   OSTree a ->
