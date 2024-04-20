@@ -178,12 +178,12 @@ rank' (Bin _ k l r) a =
   case compare a k of
     EQ ->
       -- The given element a is equal to k (and potentially equal to other elements in l).
-      case rank l a of
+      case rank' l a of
         Nothing -> Just $ size l
         Just x -> Just x
     LT ->
       -- The given element a is less than k (and all elements in r).
-      rank l a
+      rank' l a
     GT ->
       -- The given element a is greater than k (and all elements in l).
-      (size l + 1 +) <$> rank r a
+      (size l + 1 +) <$> rank' r a
