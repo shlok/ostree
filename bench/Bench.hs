@@ -24,6 +24,11 @@ revSortedItems = (reverse <$>) . sortedItems
 randomItems :: Int -> IO Env
 randomItems n = replicateM n randomIO
 
+-- -- | 'rank'' appears to be substantially slower than 'rank' especially in this case.
+-- sameItems :: Int -> IO Env
+-- sameItems n = do
+--   return $ replicate n 1000
+
 tree :: IO Env -> IO (OSTree Int, Int)
 tree items = do
   tree <- M.fromList <$> items
@@ -33,7 +38,12 @@ tree items = do
 allKs = [10000, 20000, 50000, 100000, 200000, 1000000]
 
 envs :: [(String, Int -> IO Env)]
-envs = [("Sorted", sortedItems), ("Reverse", revSortedItems), ("Random", randomItems)]
+envs =
+  [ ("Sorted", sortedItems),
+    ("Reverse", revSortedItems),
+    ("Random", randomItems)
+    -- ("Same", sameItems)
+  ]
 
 envs' :: [(String, Int -> IO (OSTree Int, Int))]
 envs' = map (second (tree .)) envs
